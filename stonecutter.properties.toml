@@ -1,0 +1,67 @@
+mod.name = "OneClient"
+mod.id = "oneclient"
+mod.version = "1.0.0"
+mod.group = "org.polyfrost"
+
+deps.fabric_loader = "0.19.5"
+deps.fabric_language_kotlin = "1.14.1+kotlin.2.4.20"
+deps.oneconfig = "1.6.0"
+deps.kotlin = "2.4.20"
+deps.mixin_extras = "0.5.4"
+deps.devauth = "1.2.2"
+
+loomx.loom_version = "1.17-SNAPSHOT"
+
+publish.modrinth = "tk06RdIN"
+
+["1.8.9"]
+mod.mc_compat = "1.8.9"
+mod.mc_releases = "1.8.9"
+feather_build = 2
+deps.osl_core = "0.11.0+mc14w27a-mc1.14.4"
+deps.osl_keybinds = "0.3.0+mc13w36a-mc17w15a"
+
+["1.21.1"]
+mod.mc_compat = "1.21.1"
+mod.mc_releases = "1.21.1"
+deps.fabric_api = "0.116.15+1.21.1"
+
+["1.21.4"]
+mod.mc_compat = "1.21.4"
+mod.mc_releases = "1.21.4"
+deps.fabric_api = "0.119.4+1.21.4"
+
+["1.21.5"]
+mod.mc_compat = "1.21.5"
+mod.mc_releases = "1.21.5"
+deps.fabric_api = "0.128.2+1.21.5"
+
+["1.21.8"]
+mod.mc_compat = "1.21.8"
+mod.mc_releases = "1.21.8"
+deps.fabric_api = "0.136.1+1.21.8"
+
+["1.21.10"]
+mod.mc_compat = "1.21.10"
+mod.mc_releases = "1.21.10"
+deps.fabric_api = "0.138.4+1.21.10"
+
+["1.21.11"]
+mod.mc_compat = "1.21.11"
+mod.mc_releases = "1.21.11"
+deps.fabric_api = "0.141.6+1.21.11"
+
+["26.1"]
+mod.mc_compat = "~26.1"
+mod.mc_releases = "26.1, 26.1.1, 26.1.2"
+deps.fabric_api = "0.155.2+26.1.2"
+
+["26.2"]
+mod.mc_compat = "~26.2"
+mod.mc_releases = "26.2"
+deps.fabric_api = "0.157.0+26.2"
+
+["26.3"]
+mod.mc_compat = "~26.3"
+mod.mc_releases = "26.3"
+deps.fabric_api = "0.160.3+26.3"
