@@ -2,9 +2,6 @@
 
 package org.polyfrost.oneclient.gui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,8 +15,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -28,15 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LinearGradientShader
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
@@ -55,8 +44,6 @@ import androidx.compose.ui.unit.sp
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.TitleScreen
-import net.minecraft.client.resources.sounds.SimpleSoundInstance
-import net.minecraft.sounds.SoundEvents
 //? if > 1.8.9 {
 import com.mojang.realmsclient.RealmsMainScreen
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen
@@ -67,16 +54,21 @@ import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen
 import net.minecraft.client.gui.screen.menu.options.OptionsScreen
 import net.minecraft.client.gui.screen.menu.world.SelectWorldScreen
 import net.minecraft.realms.RealmsBridge
-import org.polyfrost.oneconfig.internal.legacy.LegacyPanoramaTracker
 *///?}
 import org.polyfrost.oneclient.OneClientConfig
 import org.polyfrost.oneconfig.api.ui.v1.ExperimentalOneConfigUiApi
 import org.polyfrost.oneconfig.api.ui.v1.OneConfigUI
+import org.polyfrost.oneconfig.api.ui.v1.components.ControlSize
+import org.polyfrost.oneconfig.api.ui.v1.components.ControlStyle
+import org.polyfrost.oneconfig.api.ui.v1.components.IconButton
+import org.polyfrost.oneconfig.api.ui.v1.components.IconButtonStyle
+import org.polyfrost.oneconfig.api.ui.v1.components.Text
+import org.polyfrost.oneconfig.api.ui.v1.components.TextButton
+import org.polyfrost.oneconfig.api.ui.v1.components.TooltipPlacement
+import org.polyfrost.oneconfig.api.ui.v1.page.PageText
+import org.polyfrost.oneconfig.api.ui.v1.page.resolve
+import org.polyfrost.oneconfig.api.ui.v1.platform.OneConfigComposeScreen
 import org.polyfrost.oneconfig.api.ui.v1.theme.OneConfigTheme
-import org.polyfrost.oneconfig.api.ui.v1.theme.ProvideOneConfigTheme
-import org.polyfrost.oneconfig.internal.ui.compose.ComposeScreen
-import kotlin.math.cos
-import kotlin.math.sin
 
 //? if >= 26.1 {
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -86,8 +78,18 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 /*import net.minecraft.client.gui.GuiGraphics
 *///?}
 
-class OneClientMenuScreen : ComposeScreen(RenderMode.CONTINUOUS) {
+class OneClientMenuScreen : OneConfigComposeScreen(previous = null, renderMode = RenderMode.Continuous) {
     private var firstFrameDrawn = false
+
+    init {
+        OneConfigTheme.registerPixelIcons(MenuPixelIcons)
+    }
+
+    override val blurBackground: Boolean get() = false
+
+    override val closeOnEscape: Boolean get() = false
+
+    override val panoramaBackground: Boolean get() = true
 
     private var menuGuiScale by mutableStateOf(mcGuiScale())
 
@@ -96,28 +98,12 @@ class OneClientMenuScreen : ComposeScreen(RenderMode.CONTINUOUS) {
         if (gs != menuGuiScale) menuGuiScale = gs
     }
 
-    //? if > 1.8.9 {
-    override fun shouldCloseOnEsc(): Boolean = false
-    //?} else {
-    /*override fun init() {
-        legacyPanorama()
-        super.init()
-    }
-
-    override fun render(mouseX: Int, mouseY: Int, tickDelta: Float) {
+    //? if = 1.8.9 {
+    /*override fun render(mouseX: Int, mouseY: Int, tickDelta: Float) {
         syncGuiScaleState()
         super.render(mouseX, mouseY, tickDelta)
         MenuBackgroundPass.renderInline()
         firstFrameDrawn = true
-    }
-
-    private fun legacyPanorama() {
-        if (LegacyPanoramaTracker.current() != null) return
-        val mc = Minecraft.getInstance()
-        val title = runCatching {
-            TitleScreen().also { it.init(mc, mc.window.guiScaledWidth, mc.window.guiScaledHeight) }
-        }.getOrNull() ?: return
-        LegacyPanoramaTracker.capture(title)
     }
     *///?}
 
@@ -163,52 +149,50 @@ class OneClientMenuScreen : ComposeScreen(RenderMode.CONTINUOUS) {
     //?}
 
     @Composable
-    override fun compose() {
+    override fun Content() {
         val mc = Minecraft.getInstance()
-        ProvideOneConfigTheme {
-            MainMenu(
-                guiScale = menuGuiScale,
-                actions = MenuActions(
-                    singleplayer = { MainMenuReplacement.openScreen(SelectWorldScreen(this)) },
-                    multiplayer = { MainMenuReplacement.openScreen(JoinMultiplayerScreen(this)) },
-                    realms = if (realmsSupported()) {
-                        {
-                            //? if > 1.8.9 {
-                            MainMenuReplacement.openScreen(RealmsMainScreen(this))
-                            //?} else {
-                            /*RealmsBridge().createMainMenuScreen(this)
-                            *///?}
-                        }
-                    } else null,
-                    settings = {
-                        //? if >= 26.3 {
-                        MainMenuReplacement.openScreen(OptionsScreen(this, mc.options))
-                        //?} elif >= 26.1 {
-                        /*MainMenuReplacement.openScreen(OptionsScreen(this, mc.options, false))
-                        *///?} else {
-                        /*MainMenuReplacement.openScreen(OptionsScreen(this, mc.options))
+        MainMenu(
+            guiScale = menuGuiScale,
+            actions = MenuActions(
+                singleplayer = { MainMenuReplacement.openScreen(SelectWorldScreen(this)) },
+                multiplayer = { MainMenuReplacement.openScreen(JoinMultiplayerScreen(this)) },
+                realms = if (realmsSupported()) {
+                    {
+                        //? if > 1.8.9 {
+                        MainMenuReplacement.openScreen(RealmsMainScreen(this))
+                        //?} else {
+                        /*RealmsBridge().createMainMenuScreen(this)
                         *///?}
-                    },
-                    mods = { OneConfigUI.open(MODS_PAGE) },
-                    vanilla = {
-                        OneClientConfig.useVanillaMainMenu = true
-                        OneClientConfig.save()
-                        MainMenuReplacement.openScreen(TitleScreen())
-                    },
+                    }
+                } else null,
+                settings = {
                     //? if >= 26.3 {
-                    fullscreen = {
-                        mc.options.fullscreen().set(!mc.options.fullscreen().get())
-                        mc.options.save()
-                    },
-                    //?} elif > 1.8.9 {
-                    /*fullscreen = { mc.window.toggleFullScreen() },
+                    MainMenuReplacement.openScreen(OptionsScreen(this, mc.options))
+                    //?} elif >= 26.1 {
+                    /*MainMenuReplacement.openScreen(OptionsScreen(this, mc.options, false))
                     *///?} else {
-                    /*fullscreen = { mc.toggleFullscreen() },
+                    /*MainMenuReplacement.openScreen(OptionsScreen(this, mc.options))
                     *///?}
-                    quit = { mc.stop() },
-                ),
-            )
-        }
+                },
+                mods = { OneConfigUI.open(MODS_PAGE) },
+                vanilla = {
+                    OneClientConfig.useVanillaMainMenu = true
+                    OneClientConfig.save()
+                    MainMenuReplacement.openScreen(TitleScreen())
+                },
+                //? if >= 26.3 {
+                fullscreen = {
+                    mc.options.fullscreen().set(!mc.options.fullscreen().get())
+                    mc.options.save()
+                },
+                //?} elif > 1.8.9 {
+                /*fullscreen = { mc.window.toggleFullScreen() },
+                *///?} else {
+                /*fullscreen = { mc.toggleFullscreen() },
+                *///?}
+                quit = { mc.stop() },
+            ),
+        )
     }
 }
 
@@ -225,60 +209,45 @@ private class MenuActions(
 
 private const val ASSETS = "assets/oneclient/mainmenu/"
 private const val MODS_PAGE = "oneconfig:mods"
+private const val VANILLA_MENU_LABEL = "Vanilla Main Menu"
 private const val BASE_WIDTH = 1240f
 private const val BASE_HEIGHT = 720f
 private const val REFERENCE_GUI_SCALE = 2f
 private const val GUI_DENSITY_TRIM = 0.88f
-private const val PANEL_BORDER_ANGLE_DEG = 20.0
 
-private val PanelBorderWidth = 1.5.dp
-private val CloseBackground = Color(0x80FF4444)
-
-private val PanelBorderBrush: Brush = object : ShaderBrush() {
-    override fun createShader(size: Size): Shader {
-        val radians = Math.toRadians(PANEL_BORDER_ANGLE_DEG)
-        val ux = cos(radians).toFloat()
-        val uy = sin(radians).toFloat()
-        val len = size.width * ux + size.height * uy
-        return LinearGradientShader(
-            from = Offset.Zero,
-            to = Offset(ux * len, uy * len),
-            colors = listOf(
-                Color.White.copy(alpha = 0.5f),
-                Color.White.copy(alpha = 0.15f),
-                Color.White.copy(alpha = 0.5f),
-            ),
-            colorStops = listOf(0f, 0.5f, 1f),
-        )
-    }
-}
-
-private val PanelBackground: Color
-    @Composable get() = OneConfigTheme.current.componentBackground.copy(alpha = 0.5f)
+private val MenuControlSize = ControlSize.ExtraLarge
+private const val MEDIA_SHADOW_ALPHA = 0.2f
+private const val MEDIA_SECONDARY_ALPHA = 0.6f
 
 private val TextPrimary: Color
     @Composable get() = OneConfigTheme.current.textColor
 
-private val TextSecondary: Color
-    @Composable get() = OneConfigTheme.current.textColorSecondary
+private val OnMedia: Color
+    @Composable get() = OneConfigTheme.current.onMedia
 
-private val isMinecraftTheme: Boolean
-    @Composable
-    get() = OneConfigTheme.current.name.let { it == OneConfigTheme.MINECRAFT_DARK.name || it == OneConfigTheme.MINECRAFT_LIGHT.name }
+private val OnMediaSecondary: Color
+    @Composable get() = OneConfigTheme.current.onMedia.let { it.copy(alpha = it.alpha * MEDIA_SECONDARY_ALPHA) }
+
+private val MediaShadow: Color
+    @Composable get() = OneConfigTheme.current.onMediaShadow.copy(alpha = MEDIA_SHADOW_ALPHA)
+
+private val MediaTextShadow: Shadow
+    @Composable get() = Shadow(OneConfigTheme.current.onMediaShadow, Offset(0f, 1f), 2f)
 
 private val PanelShape: Shape
     @Composable
-    get() = if (isMinecraftTheme) RectangleShape else RoundedCornerShape(9.dp)
+    get() = OneConfigTheme.shape(9.dp)
 
-private val PixelIcons = setOf("user-01", "minecraft-block")
-private val OneConfigPixelIcons = mapOf(
-    "settings-02" to "cog",
-    "settings-04" to "preferences",
-    "users-01" to "profiles",
-    "globe-01" to "cloud",
-    "x-close" to "close",
-    "maximize-02" to "maximise",
-)
+private val MenuPixelIcons: Map<String, String> =
+    setOf("user-01", "minecraft-block").associate { "$ASSETS$it.svg" to "${ASSETS}minecraft/$it.svg" } +
+        mapOf(
+            "settings-02" to "cog",
+            "settings-04" to "preferences",
+            "users-01" to "profiles",
+            "globe-01" to "cloud",
+            "x-close" to "close",
+            "maximize-02" to "maximise",
+        ).entries.associate { (name, pixel) -> "$ASSETS$name.svg" to "/assets/oneconfig/ico/minecraft/$pixel.svg" }
 
 private val Outfit: FontFamily by lazy {
     runCatching {
@@ -303,20 +272,6 @@ private fun platformLabel(): String = runCatching {
     if (mcVersion.isBlank()) "Fabric" else "Fabric $mcVersion"
 }.getOrDefault("Fabric")
 
-private fun playButtonClickSound() {
-    val minecraft = Minecraft.getInstance()
-    //? if > 1.8.9 {
-    minecraft.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f))
-    //?} else {
-    /*minecraft.soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f, 1.0f))
-    *///?}
-}
-
-private fun Modifier.clickableWithSound(onClick: () -> Unit): Modifier = clickable {
-    playButtonClickSound()
-    onClick()
-}
-
 @Composable
 private fun scaledDensity(scale: Float): Density {
     val density = LocalDensity.current
@@ -324,16 +279,8 @@ private fun scaledDensity(scale: Float): Density {
 }
 
 @Composable
-private fun themedIcon(path: String): String {
-    if (!isMinecraftTheme) return path
-    val name = path.substringAfterLast('/').removeSuffix(".svg")
-    if (name in PixelIcons) return "${ASSETS}minecraft/$name.svg"
-    return OneConfigPixelIcons[name]?.let { "/assets/oneconfig/ico/minecraft/$it.svg" } ?: path
-}
-
-@Composable
 private fun Icon(path: String, color: Color, modifier: Modifier) =
-    org.polyfrost.oneconfig.api.ui.v1.components.Icon(themedIcon(path), color, modifier)
+    org.polyfrost.oneconfig.api.ui.v1.components.Icon(path, null, modifier, color)
 
 @Composable
 private fun MenuText(
@@ -344,17 +291,19 @@ private fun MenuText(
     fontWeight: FontWeight = FontWeight.Normal,
     letterSpacing: TextUnit = TextUnit.Unspecified,
     fontFamily: FontFamily = OneConfigTheme.current.fontFamily,
+    shadow: Shadow? = null,
 ) {
-    BasicText(
+    Text(
         text = text,
         modifier = modifier,
+        color = color,
         style = TextStyle(
-            color = color,
             fontSize = fontSize,
             fontWeight = fontWeight,
             letterSpacing = letterSpacing,
             fontFamily = fontFamily,
             textAlign = TextAlign.Center,
+            shadow = shadow,
         ),
     )
 }
@@ -379,8 +328,8 @@ private fun CenterColumn(modifier: Modifier, actions: MenuActions) {
         MainLogo()
         Spacer(Modifier.height(16.dp))
         Box(contentAlignment = Alignment.Center) {
-            MenuText("ONECLIENT", 42.sp, Modifier.offset(y = 3.dp), Color(0x33000000), FontWeight.Bold, 2.5.sp, Outfit)
-            MenuText("ONECLIENT", 42.sp, color = Color.White, fontWeight = FontWeight.Bold, letterSpacing = 2.5.sp, fontFamily = Outfit)
+            MenuText("ONECLIENT", 42.sp, Modifier.offset(y = 3.dp), MediaShadow, FontWeight.Bold, 2.5.sp, Outfit)
+            MenuText("ONECLIENT", 42.sp, color = OnMedia, fontWeight = FontWeight.Bold, letterSpacing = 2.5.sp, fontFamily = Outfit)
         }
         Spacer(Modifier.height(48.dp))
         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -400,8 +349,8 @@ private fun CenterColumn(modifier: Modifier, actions: MenuActions) {
 @Composable
 private fun MainLogo() {
     Box(Modifier.size(96.dp), contentAlignment = Alignment.Center) {
-        Icon(ASSETS + "logo.svg", Color(0x33000000), Modifier.size(96.dp).offset(y = 3.dp))
-        Icon(ASSETS + "logo.svg", Color.White, Modifier.size(96.dp))
+        Icon(ASSETS + "logo.svg", MediaShadow, Modifier.size(96.dp).offset(y = 3.dp))
+        Icon(ASSETS + "logo.svg", OnMedia, Modifier.size(96.dp))
     }
 }
 
@@ -409,9 +358,9 @@ private fun MainLogo() {
 private fun WindowControls(modifier: Modifier, actions: MenuActions) {
     val mac = remember { System.getProperty("os.name").lowercase().contains("mac") }
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        IconButton(ASSETS + "minecraft-block.svg", onClick = actions.vanilla)
-        if (!mac) IconButton(ASSETS + "maximize-02.svg", onClick = actions.fullscreen)
-        IconButton(ASSETS + "x-close.svg", CloseBackground, actions.quit)
+        WindowButton(ASSETS + "minecraft-block.svg", VANILLA_MENU_LABEL, onClick = actions.vanilla)
+        if (!mac) WindowButton(ASSETS + "maximize-02.svg", PageText.translatable("options.fullscreen", "Fullscreen").resolve(), onClick = actions.fullscreen)
+        WindowButton(ASSETS + "x-close.svg", PageText.translatable("menu.quit", "Quit Game").resolve(), danger = true, onClick = actions.quit)
     }
 }
 
@@ -425,7 +374,7 @@ private fun Footer(modifier: Modifier, unscaled: (Float) -> Dp) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(ASSETS + "footer-logo.svg", Color.White, Modifier.size(25.dp))
+            Icon(ASSETS + "footer-logo.svg", OnMedia, Modifier.size(25.dp))
             FooterBrandText(platformLabel())
         }
         MenuText(
@@ -434,7 +383,8 @@ private fun Footer(modifier: Modifier, unscaled: (Float) -> Dp) {
             Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = unscaled(24f), bottom = unscaled(18f)),
-            TextSecondary,
+            OnMediaSecondary,
+            shadow = MediaTextShadow,
         )
     }
 }
@@ -442,11 +392,12 @@ private fun Footer(modifier: Modifier, unscaled: (Float) -> Dp) {
 @Composable
 private fun FooterBrandText(platform: String) {
     val bodyFont = OneConfigTheme.current.fontFamily
-    val secondary = TextSecondary
+    val primary = OnMedia
+    val secondary = OnMediaSecondary
 
-    BasicText(
+    Text(
         text = buildAnnotatedString {
-            withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Bold, fontFamily = Outfit)) {
+            withStyle(SpanStyle(color = primary, fontWeight = FontWeight.Bold, fontFamily = Outfit)) {
                 append("ONECLIENT")
             }
             withStyle(SpanStyle(color = secondary, fontFamily = bodyFont)) {
@@ -458,39 +409,35 @@ private fun FooterBrandText(platform: String) {
             fontSize = 13.sp,
             fontFamily = bodyFont,
             textAlign = TextAlign.Center,
+            shadow = MediaTextShadow,
         ),
     )
 }
 
 @Composable
 private fun PillButton(label: String, icon: String, modifier: Modifier, onClick: () -> Unit) {
-    Row(
-        modifier = modifier
-            .height(45.dp)
-            .clip(PanelShape)
-            .background(PanelBackground)
-            .border(PanelBorderWidth, PanelBorderBrush, PanelShape)
-            .clickableWithSound(onClick)
-            .padding(horizontal = 18.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, TextPrimary, Modifier.size(20.dp))
-        MenuText(label, 16.sp)
-    }
+    TextButton(
+        label,
+        icon,
+        onClick,
+        modifier,
+        style = ControlStyle.Glass,
+        size = MenuControlSize,
+        shape = PanelShape,
+        contentSpacing = 12.dp,
+    )
 }
 
 @Composable
-private fun IconButton(icon: String, background: Color = PanelBackground, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(45.dp)
-            .clip(PanelShape)
-            .background(background)
-            .border(PanelBorderWidth, PanelBorderBrush, PanelShape)
-            .clickableWithSound(onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, TextPrimary, Modifier.size(20.dp))
-    }
+private fun WindowButton(icon: String, label: String, danger: Boolean = false, onClick: () -> Unit) {
+    IconButton(
+        icon,
+        label,
+        onClick,
+        style = IconButtonStyle.Glass,
+        size = MenuControlSize,
+        danger = danger,
+        tooltipPlacement = TooltipPlacement.AboveCenter,
+        shape = PanelShape,
+    )
 }

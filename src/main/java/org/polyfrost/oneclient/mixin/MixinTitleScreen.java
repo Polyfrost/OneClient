@@ -11,8 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public class MixinTitleScreen {
     @WrapMethod(method = "init")
     private void oneclient$replaceMainMenu(Operation<Void> original) {
-        if (MainMenuReplacement.enabled() && !MainMenuReplacement.alreadyOpen()) {
-            MainMenuReplacement.open();
+        if (MainMenuReplacement.enabled() && !MainMenuReplacement.alreadyOpen() && MainMenuReplacement.open()) {
             return;
         }
         original.call();

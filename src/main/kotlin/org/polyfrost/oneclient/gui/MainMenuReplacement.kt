@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalOneConfigUiApi::class)
+
 package org.polyfrost.oneclient.gui
 
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import org.polyfrost.oneclient.OneClientConfig
+import org.polyfrost.oneconfig.api.ui.v1.ExperimentalOneConfigUiApi
+import org.polyfrost.oneconfig.api.ui.v1.platform.OneConfigScreens
 
 object MainMenuReplacement {
     @JvmStatic
@@ -15,24 +18,13 @@ object MainMenuReplacement {
     fun create(): Screen = OneClientMenuScreen()
 
     @JvmStatic
-    fun open() = openScreen(create())
+    fun open(): Boolean {
+        openScreen(create())
+        return alreadyOpen()
+    }
 
     @JvmStatic
-    fun currentScreen(): Screen? =
-        //? if >= 26.2 {
-        Minecraft.getInstance().gui.screen()
-        //?} else {
-        /*Minecraft.getInstance().screen
-        *///?}
+    fun currentScreen(): Screen? = OneConfigScreens.current()
 
-    fun openScreen(screen: Screen) {
-        val mc = Minecraft.getInstance()
-        //? if >= 26.2 {
-        mc.gui.setScreen(screen)
-        //?} elif > 1.8.9 {
-        /*mc.setScreen(screen)
-        *///?} else {
-        /*mc.openScreen(screen)
-        *///?}
-    }
+    fun openScreen(screen: Screen) = OneConfigScreens.display(screen)
 }
