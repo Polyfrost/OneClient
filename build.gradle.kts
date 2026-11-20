@@ -178,12 +178,10 @@ dependencies {
         exclude(group = "net.fabricmc", module = "fabric-language-kotlin")
     }
     for (module in listOf(
-        "commands",
         "config",
         "config-impl",
         "hud",
         "notifications",
-        "poly-compose",
         "utils",
         "internal",
         "ui",
