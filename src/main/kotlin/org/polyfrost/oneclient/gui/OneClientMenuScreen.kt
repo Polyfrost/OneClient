@@ -33,7 +33,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
@@ -55,6 +54,7 @@ import net.minecraft.client.gui.screen.menu.options.OptionsScreen
 import net.minecraft.client.gui.screen.menu.world.SelectWorldScreen
 import net.minecraft.realms.RealmsBridge
 *///?}
+import org.polyfrost.compose.text.Font
 import org.polyfrost.oneclient.OneClientConfig
 import org.polyfrost.oneconfig.api.ui.v1.ExperimentalOneConfigUiApi
 import org.polyfrost.oneconfig.api.ui.v1.OneConfigUI

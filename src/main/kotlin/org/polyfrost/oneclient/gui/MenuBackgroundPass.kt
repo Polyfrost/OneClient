@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalOneConfigUiApi::class)
-
 package org.polyfrost.oneclient.gui
 
 import androidx.compose.ui.geometry.Offset
@@ -12,8 +10,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import net.minecraft.client.Minecraft
-import org.polyfrost.oneconfig.api.ui.v1.ExperimentalOneConfigUiApi
-import org.polyfrost.oneconfig.api.ui.v1.platform.InlinePolyCanvas
+import org.polyfrost.compose.minecraft.canvas.InlinePolyCanvas
 
 //? if >= 26.1 {
 import net.minecraft.client.gui.GuiGraphicsExtractor
